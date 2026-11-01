@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utsav – AI Celebration & Event Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f3fb;--ink:#1d1b3a;--mute:#5d5a7a;--card:#ffffff;--line:#ddd6ee;--ind:#2b2a6b;--mar:#f0a30a;--rose:#c2185b;--ok:#1b7f5c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 'Bricolage Grotesque',system-ui,sans-serif}
+header{background:var(--ind);color:#fff;padding:40px 20px 56px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font:600 clamp(2rem,6vw,3.4rem)/1.05 'Newsreader',Georgia,serif;margin:0 0 8px;letter-spacing:-.5px}
+header p{margin:0;color:#d6d3f5;max-width:52ch}
+main{margin-top:-32px;padding-bottom:60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+h2{font:600 1.45rem 'Newsreader',Georgia,serif;margin:0 0 12px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mute);gap:4px}
+input,select,textarea{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--mar);outline-offset:1px}
+.full{grid-column:1/-1}
+button{font:600 1rem inherit;font-family:inherit;border:0;border-radius:10px;padding:12px 20px;background:var(--mar);color:#241a00;cursor:pointer}
+button.alt{background:#ece8f8;color:var(--ink)}
+button:disabled{opacity:.6;cursor:wait}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.small{font-size:.85rem;color:var(--mute)}
+#plan{display:none}
+.bar{display:grid;grid-template-columns:150px 1fr 120px;gap:10px;align-items:center;margin:8px 0;font-size:.92rem}
+.track{background:#ece8f8;border-radius:99px;height:12px;overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,var(--ind),var(--rose))}
+.amt{text-align:right;font-variant-numeric:tabular-nums}
+.tl{border-left:3px solid var(--mar);margin-left:6px;padding-left:16px}
+.tl div{margin-bottom:14px}.tl b{display:block}
+.vend{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.vend section{border:1px solid var(--line);border-radius:10px;padding:14px}
+.vend h3{margin:0 0 8px;font-size:1rem}
+.vend label{flex-direction:row;align-items:flex-start;gap:8px;color:var(--ink);font-size:.92rem;margin:4px 0}
+.ideas{columns:2 260px;column-gap:24px;padding-left:18px}
+.ideas li{margin-bottom:8px;break-inside:avoid}
+.chat{display:flex;gap:10px}.chat input{flex:1}
+#status{min-height:1.4em}
+.err{color:var(--rose)}.good{color:var(--ok)}
+@media(max-width:560px){.bar{grid-template-columns:1fr}.amt{text-align:left}}
+@media print{header,form,#followup,#keybox,.noprint{display:none}body{background:#fff}.card{break-inside:avoid}}
+@media(prefers-reduced-motion:no-preference){.fill{transition:width .6s ease}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Utsav: plan the celebration, not the spreadsheet</h1>
+<p>Tell us the occasion, date, guests and budget. Get a rupee-by-rupee budget, a countdown timeline, vendor checklists and ideas that fit your event.</p>
+</div></header>
+
+<main class="wrap">
+<div class="card">
+<h2>Your event</h2>
+<form id="f">
+<label>Event type
+<select id="type"><option>Wedding</option><option>Birthday</option><option>Community event</option><option>Baby shower</option><option>Housewarming</option><option>Festival / Pooja</option></select></label>
+<label>Event date<input type="date" id="date" required></label>
+<label>Guests<input type="number" id="guests" min="5" max="5000" value="100" required></label>
+<label>Total budget (₹)<input type="number" id="budget" min="5000" step="1000" value="500000" required></label>
+<label>City<input id="city" value="Pune" required></label>
+<label>Theme or style<input id="theme" placeholder="e.g. traditional Maharashtrian, pastel, eco-friendly"></label>
+<label class="full">Must-haves or notes<textarea id="notes" rows="2" placeholder="e.g. vegetarian menu, live music, elderly guests, outdoor venue"></textarea></label>
+<div class="full row">
+<button type="submit" id="go">Create my plan</button>
+<span id="status" class="small" role="status" aria-live="polite"></span>
+</div>
+</form>
+<details id="keybox" class="small" style="margin-top:14px">
+<summary>AI settings (Gemini API key)</summary>
+<p>Optional: use your own Gemini API key. It stays in this browser only. Without one, the app uses the site's secure AI backend.</p>
+<div class="chat"><input id="key" type="password" placeholder="Paste Gemini API key" autocomplete="off"><button type="button" class="alt" id="savekey">Save key</button></div>
+</details>
+</div>
+
+<div id="plan">
+<div class="card"><div class="row" style="justify-content:space-between"><h2 id="ptitle" style="margin:0">Plan</h2><button class="alt noprint" onclick="window.print()">Print / save PDF</button></div><p id="summary" class="small"></p></div>
+<div class="card"><h2>Budget breakdown</h2><div id="budgetBox"></div><p id="budgetNote" class="small"></p></div>
+<div class="card"><h2>Timeline</h2><div id="timeline" class="tl"></div></div>
+<div class="card"><h2>Vendor checklist</h2><div id="vendors" class="vend"></div></div>
+<div class="card"><h2>Ideas for your event</h2><ul id="ideas" class="ideas"></ul></div>
+<div class="card" id="followup"><h2>Change something</h2>
+<div class="chat"><input id="ask" placeholder="e.g. Cut the budget by 20% or add a mehendi function" aria-label="Change request"><button id="askbtn">Update plan</button></div></div>
+</div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+let current=null,lastInput=null;
+(function(){try{const k=localStorage.getItem('gkey');if(k)$('key').value=k}catch(e){}
+const d=new Date();d.setDate(d.getDate()+60);$('date').value=d.toISOString().slice(0,10)})();
+$('savekey').onclick=()=>{try{localStorage.setItem('gkey',$('key').value.trim());$('status').textContent='Key saved in this browser.'}catch(e){$('status').textContent='Could not save key; it will be used for this session only.'}};
+
+const SCHEMA=`Return ONLY valid JSON with this shape:
+{"title":string,"summary":string,
+"budget":[{"category":string,"percent":number,"note":string}],
+"timeline":[{"when":string,"task":string}],
+"vendors":[{"category":string,"checklist":[string],"ask_vendor":string}],
+"ideas":[string]}
+Rules: budget percents must add up to 100; 7-10 budget categories; 8-12 timeline items ordered from today to the event date with real dates or "X weeks before"; 4-6 vendor groups with 3-5 checklist items; 8-10 specific, personalized ideas. Use Indian context, prices in INR, and be realistic for the city and guest count.`;
+
+function tierFor(t){
+ const m={
+ 'Wedding':[['Venue',20],['Catering',30],['Decor & flowers',12],['Photo & video',8],['Attire & jewellery',12],['Entertainment & music',5],['Invitations & gifts',4],['Travel & stay',4],['Contingency',5]],
+ 'Birthday':[['Venue',15],['Food & cake',35],['Decor & balloons',12],['Entertainment',12],['Photography',6],['Return gifts',8],['Invitations',2],['Contingency',10]],
+ 'Community event':[['Venue & permissions',18],['Food & water',30],['Stage, sound & lights',15],['Decor',8],['Publicity',7],['Volunteers & safety',7],['Cultural programme',8],['Contingency',7]]
+ };return m[t]||m['Birthday'];
+}
+function fallbackPlan(i){
+ const rows=tierFor(i.type),sum=rows.reduce((a,r)=>a+r[1],0);
+ const days=Math.max(1,Math.round((new Date(i.date)-new Date())/864e5));
+ const step=(f)=>{const d=new Date();d.setDate(d.getDate()+Math.round(days*f));return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
+ return{title:`${i.type} plan for ${i.guests} guests in ${i.city}`,
+ summary:`Built-in plan (no AI key). ${days} days to go. Add a Gemini key under AI settings for a personalized plan.`,
+ budget:rows.map(r=>({category:r[0],percent:r[1]*100/sum,note:''})),
+ timeline:[[0,'Fix budget, guest list and date; book venue'],[.12,'Shortlist caterer, decorator and photographer; pay advances'],[.3,'Send save-the-dates; finalise theme and menu tasting'],[.5,'Book entertainment, transport and stay for guests'],[.7,'Send invitations and track RSVPs'],[.85,'Confirm all vendors in writing; plan day-of schedule'],[.97,'Final headcount, payments and run-through'],[1,'Event day: assign a point person for each vendor']].map(t=>({when:t[0]===1?'Event day':step(t[0]),task:t[1]})),
+ vendors:[{category:'Venue',checklist:['Capacity and parking','Power backup and sound limits','Cancellation policy','Total cost with taxes'],ask_vendor:'What is included in the booking and what costs extra?'},
+ {category:'Catering',checklist:['Menu tasting done','Per-plate price and minimum guests','Staff and serving ratio','Leftover handling'],ask_vendor:'Can you adjust the menu for dietary needs?'},
+ {category:'Decor & photography',checklist:['See past work','Delivery timeline','Setup and teardown timing','Advance and balance payment'],ask_vendor:'Who exactly will be on site on the day?'}],
+ ideas:[i.theme?`Build the decor palette around "${i.theme}"`:'Pick one theme colour pair and repeat it everywhere','Add a live food counter for a memorable guest moment','Create a small photo corner with props','Use a shared WhatsApp group for RSVPs and updates','Keep a 5-10% contingency for last-minute changes']};
+}
+async function gemini(prompt){
+ const key=$('key').value.trim();
+ let r;
+ if(key){
+  r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:.7}})});
+ }else{
+  try{r=await fetch('/.netlify/functions/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});}catch(e){return null}
+  if(r.status===404||r.status===405)return null;
+ }
+ if(!r.ok)throw new Error('AI service error '+r.status+'. Try again.');
+ const j=await r.json();const t=j.candidates?.[0]?.content?.parts?.[0]?.text||'';
+ return JSON.parse(t.replace(/```json|```/g,'').trim());
+}
+function normalize(p,budget){
+ let s=p.budget.reduce((a,b)=>a+(+b.percent||0),0)||1;
+ p.budget.forEach(b=>{b.percent=(+b.percent||0)*100/s;b.amount=budget*b.percent/100});return p;
+}
+function render(p){
+ current=p;$('plan').style.display='block';
+ $('ptitle').textContent=p.title;$('summary').textContent=p.summary;
+ $('budgetBox').innerHTML=p.budget.map(b=>`<div class="bar"><span>${esc(b.category)}</span><div class="track"><div class="fill" style="width:${b.percent.toFixed(1)}%"></div></div><span class="amt">${fmt(b.amount)} · ${b.percent.toFixed(0)}%</span></div>${b.note?`<div class="small" style="margin:-4px 0 6px">${esc(b.note)}</div>`:''}`).join('');
+ $('budgetNote').textContent='Total: '+fmt(p.budget.reduce((a,b)=>a+b.amount,0));
+ $('timeline').innerHTML=p.timeline.map(t=>`<div><b>${esc(t.when)}</b>${esc(t.task)}</div>`).join('');
+ $('vendors').innerHTML=p.vendors.map(v=>`<section><h3>${esc(v.category)}</h3>${v.checklist.map(c=>`<label><input type="checkbox"> ${esc(c)}</label>`).join('')}<p class="small">Ask: ${esc(v.ask_vendor||'')}</p></section>`).join('');
+ $('ideas').innerHTML=p.ideas.map(x=>`<li>${esc(x)}</li>`).join('');
+ $('plan').scrollIntoView({behavior:'smooth'});
+}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function setBusy(b,msg,cls){$('go').disabled=b;$('askbtn').disabled=b;$('status').className='small '+(cls||'');$('status').textContent=msg||''}
+
+$('f').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const i={type:$('type').value,date:$('date').value,guests:+$('guests').value,budget:+$('budget').value,city:$('city').value.trim(),theme:$('theme').value.trim(),notes:$('notes').value.trim()};
+ if(!i.date||new Date(i.date)<new Date(new Date().toDateString())){setBusy(false,'Pick an event date that is today or later.','err');return}
+ lastInput=i;setBusy(true,'Planning your event…');
+ try{
+  const prompt=`You are an expert Indian event planner. Today is ${new Date().toDateString()}. Plan this event.\nType: ${i.type}\nDate: ${i.date}\nGuests: ${i.guests}\nBudget: INR ${i.budget}\nCity: ${i.city}\nTheme: ${i.theme||'open'}\nNotes: ${i.notes||'none'}\n${SCHEMA}`;
+  let p=await gemini(prompt),ai=!!p;
+  if(!p)p=fallbackPlan(i);
+  render(normalize(p,i.budget));setBusy(false,ai?'Plan created with Gemini.':'Plan created with the built-in planner. Add a Gemini key for personalized results.',ai?'good':'');
+ }catch(err){
+  render(normalize(fallbackPlan(i),i.budget));setBusy(false,(err.message||'Something went wrong')+' Showing the built-in plan instead.','err');
+ }
+});
+$('askbtn').onclick=async()=>{
+ const q=$('ask').value.trim();if(!q||!current)return;
+  setBusy(true,'Updating your plan…');
+ try{
+  const slim={...current,budget:current.budget.map(b=>({category:b.category,percent:b.percent,note:b.note}))};
+  const p=await gemini(`You are an expert Indian event planner. Event inputs: ${JSON.stringify(lastInput)}.\nCurrent plan: ${JSON.stringify(slim)}\nUser request: "${q}"\nApply the request and return the full updated plan.\n${SCHEMA}`);
+  render(normalize(p,lastInput.budget));$('ask').value='';setBusy(false,'Plan updated.','good');
+ }catch(err){setBusy(false,err.message||'Could not update the plan.','err')}
+};
+</script>
+</body>
+</html>
